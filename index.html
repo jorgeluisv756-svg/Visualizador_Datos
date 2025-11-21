@@ -16,7 +16,7 @@
       left: 10px;
       z-index: 1000;
     }
-    #logo img { height: 60px; }
+    #logo img { width: 340px; height: auto; }
 
     /* Panel lateral */
     #panel {
@@ -29,7 +29,7 @@
       border-radius: 6px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.3);
       font-family: Arial, sans-serif;
-      width: 220px;
+      width: 240px;
     }
     #panel h3 { margin-top: 0; font-size: 14px; text-align: center; }
 
@@ -37,6 +37,7 @@
     #legend {
       margin-top: 10px;
       font-size: 12px;
+      display: none; /* Oculta por defecto */
     }
     #legend div {
       display: flex;
@@ -53,7 +54,7 @@
 </head>
 <body>
   <div id="logo">
-    <img src="logo.png" alt="Logo Institucional">
+    <img src="https://raw.githubusercontent.com/jorgeluisv756-svg/imagenes_kmz/7c7924c0d0c89c5adaf112d1b8e3fb9db3258400/Logotipo%20armas30%20(1).png" alt="Logo Institucional">
   </div>
 
   <div id="panel">
@@ -107,17 +108,22 @@
       });
 
     // Eventos de casillas
+    var legendDiv = document.getElementById('legend');
     document.getElementById('informe1').addEventListener('change', function(e) {
-      if (e.target.checked) informe1Layer.addTo(map);
-      else map.removeLayer(informe1Layer);
+      if (e.target.checked) {
+        informe1Layer.addTo(map);
+        legendDiv.style.display = "block"; // Mostrar tabla
+      } else {
+        map.removeLayer(informe1Layer);
+        legendDiv.style.display = "none"; // Ocultar tabla
+      }
     });
     document.getElementById('informe2').addEventListener('change', function(e) {
       if (e.target.checked) informe2Layer.addTo(map);
       else map.removeLayer(informe2Layer);
     });
 
-    // Leyenda
-    var legendDiv = document.getElementById('legend');
+    // Contenido de la tabla (solo se genera una vez)
     var segmentos = [
       { color: "rgb(204,204,204)", label: "Sin inversión" },
       { color: "rgb(245,230,210)", label: "$1 - $66,000" },
@@ -136,3 +142,4 @@
   </script>
 </body>
 </html>
+
