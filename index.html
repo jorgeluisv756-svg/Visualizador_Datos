@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <title>Visualizador de Municipios</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <style>
+    #map { height: 100vh; width: 100vw; }
+
+    /* Logo */
+    #logo {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 1000;
+    }
+    #logo img { height: 60px; }
+
+    /* Panel lateral */
+    #panel {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 1000;
+      background: white;
+      padding: 10px;
+      border-radius: 6px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      font-family: Arial, sans-serif;
+      width: 220px;
+    }
+    #panel h3 { margin-top: 0; font-size: 14px; text-align: center; }
+
+    /* Tabla de leyenda */
+    #legend {
+      margin-top: 10px;
+      font-size: 12px;
+    }
+    #legend div {
+      display: flex;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+    #legend span {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      margin-right: 6px;
+    }
+  </style>
+</head>
+<body>
+  <div id="logo">
+    <img src="logo.png" alt="Logo Institucional">
+  </div>
+
+  <div id="panel">
+    <h3>Selecciona mapa</h3>
+    <label><input type="checkbox" id="informe1"> Tu Experiencia Transforma 1er Informe</label><br>
+    <label><input type="checkbox" id="informe2"> Tu Experiencia Transforma 2do Informe</label>
+    <div id="legend"><strong>INVERSIÓN</strong></div>
+  </div>
+
+  <div id="map"></div>
+
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script>
+    var map = L.map('map').setView([20.1, -98.7], 8);
+
+    // Base
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    // Cargar mapa base
+    fetch('MapBase.geojson')
+      .then(res => res.json())
+      .then(data => {
+        L.geoJSON(data, {
+          style: { color: "#555", weight: 1, fillOpacity: 0 }
+        }).addTo(map);
+      });
+
+    // Función para estilo según rangos
+    function estiloPorInversion(valor) {
+      if (valor <= 0) return { fillColor: "rgb(204,204,204)", color: "#333", weight: 1, fillOpacity: 0.7 };
+      else if (valor <= 66000) return { fillColor: "rgb(245,230,210)", color: "#333", weight: 1, fillOpacity: 0.7 };
+      else if (valor <= 126000) return { fillColor: "rgb(225,200,150)", color: "#333", weight: 1, fillOpacity: 0.7 };
+      else if (valor <= 240000) return { fillColor: "rgb(180,150,100)", color: "#333", weight: 1, fillOpacity: 0.7 };
+      else return { fillColor: "rgb(137,112,68)", color: "#333", weight: 1, fillOpacity: 0.7 };
+    }
+
+    var informe1Layer, informe2Layer;
+
+    // Cargar GeoJSON de TuExpTrans
+    fetch('TuExpTrans.geojson')
+      .then(res => res.json())
+      .then(data => {
+        informe1Layer = L.geoJSON(data, {
+          style: f => estiloPorInversion(f.properties.ExpTra1eIn)
+        });
+        informe2Layer = L.geoJSON(data, {
+          style: f => estiloPorInversion(f.properties.ExpTra2dIn)
+        });
+      });
+
+    // Eventos de casillas
+    document.getElementById('informe1').addEventListener('change', function(e) {
+      if (e.target.checked) informe1Layer.addTo(map);
+      else map.removeLayer(informe1Layer);
+    });
+    document.getElementById('informe2').addEventListener('change', function(e) {
+      if (e.target.checked) informe2Layer.addTo(map);
+      else map.removeLayer(informe2Layer);
+    });
+
+    // Leyenda
+    var legendDiv = document.getElementById('legend');
+    var segmentos = [
+      { color: "rgb(204,204,204)", label: "Sin inversión" },
+      { color: "rgb(245,230,210)", label: "$1 - $66,000" },
+      { color: "rgb(225,200,150)", label: "$66,001 - $126,000" },
+      { color: "rgb(180,150,100)", label: "$126,001 - $240,000" },
+      { color: "rgb(137,112,68)", label: "$240,001 - $1,122,000" }
+    ];
+    segmentos.forEach(s => {
+      var row = document.createElement('div');
+      var box = document.createElement('span');
+      box.style.background = s.color;
+      row.appendChild(box);
+      row.appendChild(document.createTextNode(s.label));
+      legendDiv.appendChild(row);
+    });
+  </script>
+</body>
+</html>
