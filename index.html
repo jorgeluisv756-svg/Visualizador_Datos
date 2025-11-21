@@ -7,24 +7,16 @@
 
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
   <style>
-    /* Mapa ocupa toda la pantalla y se ajusta al dispositivo */
-    html, body {
-      height: 100%;
-      margin: 0;
-      padding: 0;
-    }
-    #map {
-      height: 100%;
-      width: 100%;
-    }
+    html, body { height: 100%; margin: 0; padding: 0; }
+    #map { height: 100%; width: 100%; }
 
     /* Logo institucional */
     #logo {
       position: absolute;
       top: 10px;
       left: 10px;
-      z-index: 9999; /* siempre arriba */
-      background: rgba(255, 255, 255, 0.7); /* fondo tenue */
+      z-index: 9999;
+      background: rgba(255, 255, 255, 0.7);
       padding: 5px;
       border-radius: 6px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.2);
@@ -33,7 +25,7 @@
       width: 340px;
       height: auto;
       display: block;
-      max-width: 90vw; /* evita que se desborde en pantallas pequeñas */
+      max-width: 90vw;
     }
 
     /* Panel lateral */
@@ -48,7 +40,7 @@
       box-shadow: 0 2px 6px rgba(0,0,0,0.3);
       font-family: Arial, sans-serif;
       width: 240px;
-      max-width: 90vw; /* responsivo en móviles */
+      max-width: 90vw;
     }
     #panel h3 { margin-top: 0; font-size: 14px; text-align: center; }
 
@@ -70,15 +62,9 @@
       margin-right: 6px;
     }
 
-    /* Ajustes responsivos */
     @media (max-width: 600px) {
-      #logo img {
-        width: 200px; /* reduce logo en pantallas pequeñas */
-      }
-      #panel {
-        width: 180px;
-        font-size: 12px;
-      }
+      #logo img { width: 200px; }
+      #panel { width: 180px; font-size: 12px; }
     }
   </style>
 </head>
@@ -91,8 +77,9 @@
   <!-- Panel lateral -->
   <div id="panel">
     <h3>Selecciona mapa</h3>
-    <label><input type="checkbox" id="informe1"> Tu Experiencia Transforma 1er Informe</label><br>
-    <label><input type="checkbox" id="informe2"> Tu Experiencia Transforma 2do Informe</label>
+    <label><input type="radio" name="mapOption" value="informe1"> Tu Experiencia Transforma 1er Informe</label><br>
+    <label><input type="radio" name="mapOption" value="informe2"> Tu Experiencia Transforma 2do Informe</label><br>
+    <label><input type="radio" name="mapOption" value="base" checked> Mapa Base</label>
     <div id="legend"><strong>INVERSIÓN</strong></div>
   </div>
 
@@ -108,11 +95,13 @@
       attribution: '© OpenStreetMap contributors'
     }).addTo(map);
 
+    var baseLayer;
+
     // Cargar mapa base
     fetch('MapBase.geojson')
       .then(res => res.json())
       .then(data => {
-        L.geoJSON(data, {
+        baseLayer = L.geoJSON(data, {
           style: { color: "#555", weight: 1, fillOpacity: 0 }
         }).addTo(map);
       });
@@ -140,20 +129,28 @@
         });
       });
 
-    // Eventos de casillas
+    // Manejo de selección
     var legendDiv = document.getElementById('legend');
-    document.getElementById('informe1').addEventListener('change', function(e) {
-      if (e.target.checked) {
-        informe1Layer.addTo(map);
-        legendDiv.style.display = "block"; // Mostrar tabla
-      } else {
-        map.removeLayer(informe1Layer);
-        legendDiv.style.display = "none"; // Ocultar tabla
-      }
-    });
-    document.getElementById('informe2').addEventListener('change', function(e) {
-      if (e.target.checked) informe2Layer.addTo(map);
-      else map.removeLayer(informe2Layer);
+    var radios = document.getElementsByName('mapOption');
+
+    radios.forEach(radio => {
+      radio.addEventListener('change', function(e) {
+        // limpiar capas
+        if (informe1Layer) map.removeLayer(informe1Layer);
+        if (informe2Layer) map.removeLayer(informe2Layer);
+        if (baseLayer) map.removeLayer(baseLayer);
+
+        if (e.target.value === 'informe1') {
+          informe1Layer.addTo(map);
+          legendDiv.style.display = "block"; // mostrar tabla
+        } else if (e.target.value === 'informe2') {
+          informe2Layer.addTo(map);
+          legendDiv.style.display = "none"; // ocultar tabla
+        } else {
+          baseLayer.addTo(map);
+          legendDiv.style.display = "none"; // ocultar tabla
+        }
+      });
     });
 
     // Contenido de la tabla (solo se genera una vez)
@@ -175,5 +172,3 @@
   </script>
 </body>
 </html>
-
-
